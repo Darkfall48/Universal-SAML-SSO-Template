@@ -103,6 +103,25 @@ The application will be accessible at:
 - Frontend: http://localhost:3000
 - Backend: http://localhost:3001
 
+## IdP Configuration
+
+When configuring your Identity Provider (IdP), you need to set up the following:
+
+1. **Callback URL / Assert URL / ACS URL**:
+   - Set this to: `http://localhost:<BACKEND_PORT>/login/callback`
+   - The BACKEND_PORT should match the PORT value in your `.env` file (default: 3001)
+   - Example with default port: `http://localhost:3001/login/callback`
+   - In production, replace with your actual domain: `https://your-domain.com/login/callback`
+2. **Entity ID / Issuer**:
+
+   - Must match the `SAML_ISSUER` value in your `.env` file
+   - Example: `my-app` or `https://my-app.com`
+
+3. **Name ID Format**:
+   - Recommended: `urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress`
+
+Note: The exact configuration steps and terminology may vary depending on your IdP (Azure AD, Okta, Auth0, etc.).
+
 ## Credits
 
 This project was created by [@darkfall48](https://github.com/Darkfall48).
