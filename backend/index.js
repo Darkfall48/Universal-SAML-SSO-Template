@@ -1,4 +1,4 @@
-// === server/index.js ===
+// === Core Dependencies ===
 const express = require("express")
 const passport = require("passport")
 const SamlStrategy = require("passport-saml").Strategy
@@ -9,11 +9,13 @@ require("dotenv").config()
 
 const app = express()
 
-// Middleware
+// === Middleware Configuration ===
+// Body parser middleware to handle URL-encoded bodies (HTML forms) and JSON payloads
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
-// CORS to allow frontend to communicate
+// CORS middleware configuration
+// Allows requests from the React frontend (port 3000) and enables credentials
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -21,7 +23,9 @@ app.use(
   })
 )
 
-// Sessions
+// Session middleware configuration
+// Manages user sessions with cookies
+// Note: In production, 'secure' should be true and use a proper secret
 app.use(
   session({
     secret: "keyboard cat",
@@ -31,31 +35,39 @@ app.use(
   })
 )
 
-// Passport setup
+// === Passport Authentication Setup ===
+// Initialize Passport and restore authentication state from session
 app.use(passport.initialize())
 app.use(passport.session())
 
+// Serialize user for the session
+// Determines which data of the user object should be stored in the session
 passport.serializeUser((user, done) => {
   console.log("serializeUser:", user)
   done(null, user)
 })
 
+// Deserialize user from the session
+// Retrieves user data from session data
 passport.deserializeUser((user, done) => {
   console.log("deserializeUser:", user)
   done(null, user)
 })
 
+// === SAML Strategy Configuration ===
+// Sets up SAML authentication with the Identity Provider (IdP)
 passport.use(
   new SamlStrategy(
     {
-      entryPoint: process.env.SAML_ENTRYPOINT,
-      issuer: process.env.SAML_ISSUER,
-      cert: process.env.SAML_CERT,
-      callbackUrl: "http://localhost:3001/login/callback",
-      disableRequestedAuthnContext: true,
-      identifierFormat: null,
-      passReqToCallback: true,
+      entryPoint: process.env.SAML_ENTRYPOINT, // URL where users will be redirected to login
+      issuer: process.env.SAML_ISSUER, // Your application's identifier
+      cert: process.env.SAML_CERT, // IdP's public certificate
+      callbackUrl: "http://localhost:3001/login/callback", // URL where IdP will return the user
+      disableRequestedAuthnContext: true, // Disable authentication context requirements
+      identifierFormat: null, // Don't enforce identifier format
+      passReqToCallback: true, // Pass request object to callback
     },
+    // Callback function executed when SAML response is received
     (req, profile, done) => {
       console.log("SAML profile:", profile)
       return done(null, profile)
@@ -63,17 +75,22 @@ passport.use(
   )
 )
 
-// Routes
+// === Authentication Routes ===
+// Initiates SAML login process
+// Redirects user to IdP login page
 app.get("/login", (req, res, next) => {
   passport.authenticate("saml")(req, res, next)
 })
 
+// Handles SAML response from IdP
+// Processes the authentication response and creates user session
 app.post("/login/callback", (req, res, next) => {
   passport.authenticate("saml", (err, user) => {
     if (err || !user) {
       console.error("SAML authentication error:", err)
       return res.redirect("/")
     }
+    // Create user session
     req.logIn(user, (err) => {
       if (err) {
         console.error("Session save error:", err)
@@ -84,12 +101,16 @@ app.post("/login/callback", (req, res, next) => {
   })(req, res, next)
 })
 
+// Handles user logout
+// Destroys the session and redirects to home page
 app.get("/logout", (req, res) => {
   req.logout(() => {
     res.redirect("http://localhost:3000")
   })
 })
 
+// Protected profile route
+// Returns user profile information if authenticated
 app.get("/profile", (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: "Not authenticated" })
@@ -106,10 +127,11 @@ app.get("/profile", (req, res) => {
   })
 })
 
-// Favicon fix
+// Prevent favicon.ico requests from generating 404 errors
 app.get("/favicon.ico", (req, res) => res.status(204).end())
 
-// Start
+// === Server Initialization ===
+// Start the Express server on specified port
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`)
