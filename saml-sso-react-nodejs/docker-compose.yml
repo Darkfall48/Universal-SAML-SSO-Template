@@ -2,9 +2,12 @@ version: "3.8"
 
 services:
   backend:
+    container_name: ${BACKEND_CONTAINER_NAME:-saml-sso-backend}
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        - BACKEND_PORT=${BACKEND_PORT:-3001}
     ports:
       - "${BACKEND_PORT:-3001}:${BACKEND_PORT:-3001}"
     environment:
@@ -14,14 +17,18 @@ services:
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
     env_file:
       - ./.env
-
   frontend:
+    container_name: ${FRONTEND_CONTAINER_NAME:-saml-sso-frontend}
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - FRONTEND_PORT=${FRONTEND_PORT:-3000}
     ports:
       - "${FRONTEND_PORT:-3000}:${FRONTEND_PORT:-3000}"
     environment:
       - REACT_APP_BACKEND_URL=${BACKEND_URL:-http://localhost:3001}
+      - PORT=${FRONTEND_PORT:-3000}
+      - WDS_SOCKET_PORT=${FRONTEND_PORT:-3000}
     depends_on:
       - backend

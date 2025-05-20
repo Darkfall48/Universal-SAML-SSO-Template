@@ -59,6 +59,10 @@ npm install
 Create a `.env` file in the root folder with the following variables:
 
 ```bash
+#---Container Configuration---
+BACKEND_CONTAINER_NAME=saml-sso-backend
+FRONTEND_CONTAINER_NAME=saml-sso-frontend
+
 #---Backend Configuration---
 BACKEND_PORT=3001
 BACKEND_URL=http://localhost:3001
@@ -86,15 +90,18 @@ The application uses environment variables for configuration, which can be set i
 
 ### Available Environment Variables:
 
-| Variable        | Description                     | Default               |
-| --------------- | ------------------------------- | --------------------- |
-| BACKEND_PORT    | Port for the backend server     | 3001                  |
-| BACKEND_URL     | URL for the backend server      | http://localhost:3001 |
-| FRONTEND_PORT   | Port for the frontend server    | 3000                  |
-| FRONTEND_URL    | URL for the frontend server     | http://localhost:3000 |
-| SAML_ENTRYPOINT | SAML Identity Provider URL      | Required              |
-| SAML_ISSUER     | SAML Service Provider Entity ID | Required              |
-| SAML_CERT       | X.509 Certificate from IdP      | Required              |
+| Variable                | Description                     | Default               |
+| ----------------------- | ------------------------------- | --------------------- |
+| COMPOSE_PROJECT_NAME    | Docker compose project name     | saml-sso-template     |
+| BACKEND_CONTAINER_NAME  | Backend container name          | saml-sso-backend      |
+| FRONTEND_CONTAINER_NAME | Frontend container name         | saml-sso-frontend     |
+| BACKEND_PORT            | Port for the backend server     | 3001                  |
+| BACKEND_URL             | URL for the backend server      | http://localhost:3001 |
+| FRONTEND_PORT           | Port for the frontend server    | 3000                  |
+| FRONTEND_URL            | URL for the frontend server     | http://localhost:3000 |
+| SAML_ENTRYPOINT         | SAML Identity Provider URL      | Required              |
+| SAML_ISSUER             | SAML Service Provider Entity ID | Required              |
+| SAML_CERT               | X.509 Certificate from IdP      | Required              |
 
 ### Docker Configuration
 
