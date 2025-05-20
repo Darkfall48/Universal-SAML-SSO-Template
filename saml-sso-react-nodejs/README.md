@@ -56,30 +56,52 @@ npm install
 
 3. Configure environment variables:
 
-Create a `.env` file in the `backend` folder with the following variables:
+Create a `.env` file in the root folder with the following variables:
 
 ```bash
-# Backend server port (default: 3001)
-# This is the port where your Express backend server will run
-PORT=3001
+#---Backend Configuration---
+BACKEND_PORT=3001
+BACKEND_URL=http://localhost:3001
 
-# SAML Identity Provider (IdP) Entry Point URL
-# This is the URL where users will be redirected to authenticate
-# For Azure AD, it's typically like: https://login.microsoftonline.com/{tenant-id}/saml2
-# For other IdPs, use their specific SSO URL
+#---Frontend Configuration---
+FRONTEND_PORT=3000
+FRONTEND_URL=http://localhost:3000
+
+#---SAML Configuration---
+# Azure AD SAML entry point (from "Login URL" in Azure's SAML setup)
 SAML_ENTRYPOINT=<your_entrypoint_url>
-
-# SAML Service Provider (SP) Entity ID/Issuer
-# This is a unique identifier for your application
-# Must match exactly what you configured in your IdP settings
-# Example: 'my-app' or 'https://my-app.com'
+# Issuer name — must match what you put in Azure under "Identifier (Entity ID)"
 SAML_ISSUER=<your_issuer>
-
-# X.509 Certificate from your Identity Provider
-# This is the public certificate used to verify SAML responses
-# Must be in base64 format and all on one line with \n for newlines
-# Typically obtained from your IdP's SAML configuration
+# Azure AD X.509 certificate (from "SAML Signing Certificate" > Base64 download)
+# Must be a single-line string with newline characters escaped as \n
 SAML_CERT=<your_x509_certificate>
+```
+
+## Environment Variables
+
+The application uses environment variables for configuration, which can be set in two ways:
+
+1. Through the `.env` file (recommended for development)
+2. Through Docker environment variables (recommended for production)
+
+### Available Environment Variables:
+
+| Variable        | Description                     | Default               |
+| --------------- | ------------------------------- | --------------------- |
+| BACKEND_PORT    | Port for the backend server     | 3001                  |
+| BACKEND_URL     | URL for the backend server      | http://localhost:3001 |
+| FRONTEND_PORT   | Port for the frontend server    | 3000                  |
+| FRONTEND_URL    | URL for the frontend server     | http://localhost:3000 |
+| SAML_ENTRYPOINT | SAML Identity Provider URL      | Required              |
+| SAML_ISSUER     | SAML Service Provider Entity ID | Required              |
+| SAML_CERT       | X.509 Certificate from IdP      | Required              |
+
+### Docker Configuration
+
+When using Docker, the environment variables can be overridden in the `docker-compose.yml` file or through command line:
+
+```bash
+docker-compose up -d --env-file .env.production
 ```
 
 ## Getting Started
@@ -108,19 +130,32 @@ The application will be accessible at:
 When configuring your Identity Provider (IdP), you need to set up the following:
 
 1. **Callback URL / Assert URL / ACS URL**:
-   - Set this to: `http://localhost:<BACKEND_PORT>/login/callback`
-   - The BACKEND_PORT should match the PORT value in your `.env` file (default: 3001)
-   - Example with default port: `http://localhost:3001/login/callback`
+
+   - Set this to: `${BACKEND_URL}/login/callback`
+   - The URL is configured through the BACKEND_URL environment variable
+   - Example with default settings: `http://localhost:3001/login/callback`
    - In production, replace with your actual domain: `https://your-domain.com/login/callback`
+
 2. **Entity ID / Issuer**:
 
    - Must match the `SAML_ISSUER` value in your `.env` file
+   - Configurable through the SAML_ISSUER environment variable
    - Example: `my-app` or `https://my-app.com`
 
 3. **Name ID Format**:
+
    - Recommended: `urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress`
 
-Note: The exact configuration steps and terminology may vary depending on your IdP (Azure AD, Okta, Auth0, etc.).
+4. **Response URL**:
+
+   - The application expects responses at: `${BACKEND_URL}/login/callback`
+   - This URL should match your Callback URL setting
+
+5. **Sign-on URL**:
+   - Your application will initiate login at: `${BACKEND_URL}/login`
+   - This endpoint triggers the SAML authentication flow
+
+Note: The exact configuration steps and terminology may vary depending on your IdP (Azure AD, Okta, Auth0, etc.). All URLs are configurable through environment variables to support different deployment environments.
 
 ## Credits
 

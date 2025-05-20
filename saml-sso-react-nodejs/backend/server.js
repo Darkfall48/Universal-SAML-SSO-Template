@@ -9,16 +9,21 @@ require("dotenv").config()
 
 const app = express()
 
+// === Environment Variables ===
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000"
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001"
+const BACKEND_PORT = process.env.BACKEND_PORT || 3001
+
 // === Middleware Configuration ===
 // Body parser middleware to handle URL-encoded bodies (HTML forms) and JSON payloads
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
 // CORS middleware configuration
-// Allows requests from the React frontend (port 3000) and enables credentials
+// Allows requests from the React frontend and enables credentials
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: FRONTEND_URL,
     credentials: true,
   })
 )
@@ -62,7 +67,7 @@ passport.use(
       entryPoint: process.env.SAML_ENTRYPOINT, // URL where users will be redirected to login
       issuer: process.env.SAML_ISSUER, // Your application's identifier
       cert: process.env.SAML_CERT, // IdP's public certificate
-      callbackUrl: "http://localhost:3001/login/callback", // URL where IdP will return the user
+      callbackUrl: `${BACKEND_URL}/login/callback`, // URL where IdP will return the user
       disableRequestedAuthnContext: true, // Disable authentication context requirements
       identifierFormat: null, // Don't enforce identifier format
       passReqToCallback: true, // Pass request object to callback
@@ -88,7 +93,7 @@ app.post("/login/callback", (req, res, next) => {
   passport.authenticate("saml", (err, user) => {
     if (err || !user) {
       console.error("SAML authentication error:", err)
-      return res.redirect("/")
+      return res.redirect(FRONTEND_URL)
     }
     // Create user session
     req.logIn(user, (err) => {
@@ -96,7 +101,7 @@ app.post("/login/callback", (req, res, next) => {
         console.error("Session save error:", err)
         return res.status(500).send("Login failed")
       }
-      return res.redirect("http://localhost:3000/logged-in")
+      return res.redirect(`${FRONTEND_URL}/logged-in`)
     })
   })(req, res, next)
 })
@@ -105,7 +110,7 @@ app.post("/login/callback", (req, res, next) => {
 // Destroys the session and redirects to home page
 app.get("/logout", (req, res) => {
   req.logout(() => {
-    res.redirect("http://localhost:3000")
+    res.redirect(FRONTEND_URL)
   })
 })
 
@@ -132,7 +137,4 @@ app.get("/favicon.ico", (req, res) => res.status(204).end())
 
 // === Server Initialization ===
 // Start the Express server on specified port
-const PORT = process.env.PORT || 3001
-app.listen(PORT, () =>
-  console.log(`Server running on http://localhost:${PORT}`)
-)
+app.listen(BACKEND_PORT, () => console.log(`Server running on ${BACKEND_URL}`))
