@@ -8,10 +8,9 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - PORT=3001
       - NODE_ENV=production
     env_file:
-      - ./backend/.env
+      - ./.env
 
   frontend:
     build:
